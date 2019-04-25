@@ -1,22 +1,49 @@
 <!DOCTYPE html>
 <html>
+<head>
 	<title>Graphs</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>	
+	<link href="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.css" rel="stylesheet" type="text/css">
+	<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.js"></script>
+</head>
 	<body>
-		<div>Absorbance Line plot</div>
-		<div style="margin:20px">
-				<table style="width=100%">		
+		<div class="row">
+
+
+		<div class="panel panel-default">
+			<div class="panel-heading">Absorbance Line plot</div>
+			<div class="panel-body">
+				<table style="width=100%;max-width:100%">		
 						{% for i in range(16) %}
 								<tr style="margin:2px;padding:-2px">
 								{% for j in range(24) %}
-										<td style="padding:1px">{{absLnPlt[j+(i)*24]|safe}}</td>
+										<td style="padding:1px;max-width:100%">{{absLnPlt[j+(i)*24]|safe}}</td>
 								{% endfor %}
 								</tr> 
 						{% endfor %}
 				</table>
+			</div>
+
 		</div>
 
-		<div>
+</div>
 		
+<div class="panel panel-default">
+	<div class="panel-heading">Heatmap</div>
+		<div class="panel-body" id="heatmap">
+<select name="wavelength" method="GET">
+	<option value="{{wvls[0]}}" selected> {{wvls[0]}}</option>
+{% for wvl in wvls[1:] %}
+	<option value="{{wvl}}">{{wvl}}</option>
+{% endfor %}
+</select>
+		{{div|safe}}
+		{{script|safe}}
+		</div>
 		</div>
 	</body>
 </html>

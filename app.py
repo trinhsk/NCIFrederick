@@ -1,5 +1,6 @@
 from flask import Flask, render_template, Response, Markup, send_file
-from graph import build_graph, pd, stripDF
+from graph import build_graph, build_heatmap, pd, stripDF
+from bokeh.embed import components
 
 app = Flask(__name__)
 
@@ -17,7 +18,10 @@ for i in range(384):
 
 @app.route('/')
 def plotgraphs():
-    return render_template('graphs.html', absLnPlt=lstofplots100)
+    p = build_heatmap(dfm100,1,250,'14109130211')
+    script,div = components(p)
+    return render_template('graphs.html', absLnPlt=lstofplots100,div=div,script=script,wvls=wavelength)
+
 
 if __name__ == '__main__':
     app.debug = True
