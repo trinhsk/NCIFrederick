@@ -3,6 +3,20 @@
 	<title>Graphs</title>
 	<body>
 		<div>Absorbance Line plot</div>
-		<div><img src='{{ absLnPlt }}'></img></div>
+		<div style="margin:20px">
+				<table style="width=100%">		
+						{% for i in range(16) %}
+								<tr style="margin:2px;padding:-2px">
+								{% for j in range(24) %}
+										<td style="padding:1px">{{absLnPlt[j+(i)*24]|safe}}</td>
+								{% endfor %}
+								</tr> 
+						{% endfor %}
+				</table>
+		</div>
+
+		<div>
+		
+		</div>
 	</body>
 </html>
