@@ -28,8 +28,8 @@ def build_graph(dfm,wavelength,cnt):
     
     absvals = dfm[f'{wellIds[cnt]}'] 
     axis.plot(wavelength,absvals)
-    axis.set_title(f'{dfm.columns[cnt]}',fontsize=7.6)
-    axis.title.set_position([.5, .85])
+    axis.set_title(f'{dfm.columns[cnt]}',fontsize=9)
+    axis.title.set_position([.5, .64])
     axis.tick_params(
             which='both',
             bottom=False,
@@ -59,14 +59,14 @@ def build_heatmap(dfm,row,wavelength,pltcode):
     xs = [str(item) for sublist in xs for item in sublist] #flatten list
     strings = [i for i in string.ascii_uppercase[0:16]]*colCnt
     df = pd.DataFrame({'xs':xs,'ys':strings,'value':dfm_array.flatten('C').tolist(),'colour':colours})
-    p = figure(plot_width=900,plot_height=600,x_axis_location="above", tools="hover",
-               title=f'Heatmap of {pltcode} 384-plate at {int(wavelength)}nm', 
+    p = figure(plot_width=1600,plot_height=1170,x_axis_location="above", tools="hover",
+               # title=f'Heatmap of {pltcode} 384-plate at {int(wavelength)}nm', 
                x_range=df['xs'].drop_duplicates(),#[str(i) for i in range(24)],
                y_range=list(reversed(df['ys'].drop_duplicates())),#list(reversed([i for i in string.ascii_uppercase[:16]])),
                tooltips = [('wellID', '@ys,@xs'), ('abs', '@value')])
-    p.rect('xs', 'ys', 0.9, 0.9,source=ColumnDataSource(df), fill_color='colour',line_color='black')
-    p.xaxis.major_label_text_font_style='bold'
-    p.yaxis.major_label_text_font_style='bold'
+    p.rect('xs', 'ys', .61,.61 ,source=ColumnDataSource(df), fill_color='colour',line_color='black')
+    p.toolbar.logo = None
+    p.toolbar_location = None
     label_dict = {}
     for i, s in enumerate(df['xs'].drop_duplicates()):
         label_dict[i] = str(int(s) + 1)

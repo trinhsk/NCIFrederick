@@ -5,10 +5,12 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheet.css') }}">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>	
-	<link href="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.css" rel="stylesheet" type="text/css">
-	<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.js"></script>
+	<link href="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.css" rel="stylesheet" type="text/css">
+	<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.js"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='jscripts.js') }}" async></script>
 </head>
 	<body>
 		<div class="row">
@@ -16,7 +18,7 @@
 
 		<div class="panel panel-default">
 			<div class="panel-heading">Absorbance Line plot</div>
-			<div class="panel-body">
+			<div class="panel-body" id="lineplot">
 				<table style="width=100%;max-width:100%">		
 						{% for i in range(16) %}
 								<tr style="margin:2px;padding:-2px">
@@ -33,17 +35,23 @@
 </div>
 		
 <div class="panel panel-default">
-	<div class="panel-heading">Heatmap</div>
+        <div class="panel-heading" id="panelHeadHm">Select a wavelength to plot a heatmap</div>
+
 		<div class="panel-body" id="heatmap">
-<select name="wavelength" method="GET">
-	<option value="{{wvls[0]}}" selected> {{wvls[0]}}</option>
-{% for wvl in wvls[1:] %}
-	<option value="{{wvl}}">{{wvl}}</option>
-{% endfor %}
-</select>
-		{{div|safe}}
-		{{script|safe}}
-		</div>
+				<form id="form-wavelength">
+						<label for="wavelength_selector">Wavelength:</label>	
+                        <select id="wavelength_selector">
+								<option value="{{wvls[0]}}" selected> {{wvls[0]}}</option>
+						{% for wvl in wvls[1:] %}
+							<option value="{{wvl}}">{{wvl}}</option>
+						{% endfor %}
+						</select>
+						<input class="submit-button" type="submit" id="submit-btn-hm">			
+				</form>
+				<div id="innerPanel">		
+                    <!- #heatmap goes here->	
+                </div>
+            </div>
 		</div>
 	</body>
 </html>

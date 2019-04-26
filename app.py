@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, Markup, send_file
+from flask import Flask, render_template, Markup, request, jsonify
 from graph import build_graph, build_heatmap, pd, stripDF
 from bokeh.embed import components
 
@@ -18,10 +18,17 @@ for i in range(384):
 
 @app.route('/')
 def plotgraphs():
-    p = build_heatmap(dfm100,1,250,'14109130211')
-    script,div = components(p)
-    return render_template('graphs.html', absLnPlt=lstofplots100,div=div,script=script,wvls=wavelength)
+        return render_template('graphs.html', absLnPlt=lstofplots100, wvls=wavelength)
 
+@app.route('/updateHeatmap/')
+def updateHeatmap():
+     pltcode='14190302100'
+     selected_wavelength = request.args.get('wavelength')
+     print(selected_wavelength)
+     row = wavelength.index(int(selected_wavelength))
+     p = build_heatmap(dfm100,row,selected_wavelength,pltcode)
+     script,div = components(p) 
+     return jsonify(htmlHeatmap=render_template('updateHeatmap.html',script=script,div=div),pltcode=pltcode,selected_wavelength=selected_wavelength)
 
 if __name__ == '__main__':
     app.debug = True
