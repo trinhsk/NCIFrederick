@@ -2,8 +2,8 @@ body,html{
             margin: 2;
             padding: 1;
         }
-#lineplot #heatmap{
-	position: absolute;
+#lineplot, #heatmap{
+
 	width:100%;
 	height: 100%;
 	display:flex;
