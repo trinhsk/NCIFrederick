@@ -30,7 +30,7 @@ def updateDf():
      lstofplots = []
      for i in range(384):
          lstofplots.append(Markup(build_graph(dfm,wavelength,i).decode('utf-8')))
-     return jsonify(htmlLinePlt=render_template('updateDf.html',lstofplots=lstofplots),pltcode=selected_pltcode)
+     return jsonify(htmlLinePlt=render_template('updateDF.html',lstofplots=lstofplots),pltcode=selected_pltcode)
 
 @app.route('/updateHeatmap/')
 def updateHeatmap():
