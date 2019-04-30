@@ -11,30 +11,32 @@
 	<link href="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.css" rel="stylesheet" type="text/css">
 	<script src="https://cdn.pydata.org/bokeh/release/bokeh-1.1.0.min.js"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='jscripts.js') }}" async></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
 </head>
 	<body>
-		<div class="row">
 
-
-		<div class="panel panel-default">
-			<div class="panel-heading" id="panelHeadAbs"><h3>Absorbance Line plot</h3></div>
+        <div class="panel panel-default">
+			<div class="panel-heading" id="panelHeadLnPlt"><h3>Enter Plate Code</h3></div>
 			<div class="panel-body" id="lineplot">
-				<table style="width=100%;max-width:100%">		
-						{% for i in range(16) %}
-								<tr style="margin:2px;padding:-2px">
-								{% for j in range(24) %}
-										<td style="padding:1px;max-width:100%">{{absLnPlt[j+(i)*24]|safe}}</td>
-								{% endfor %}
-								</tr> 
-						{% endfor %}
-				</table>
+                <form id="form-lineplt">
+                    <label for="pltcode_selector">Plate Code: </label>
+                    <select id="pltcode_selector">
+                        <option value="{{pltcodes[0]}}" selected> {{pltcodes[0]}} </option>
+                        {% for eachpltcode in pltcodes[1:] %}
+                        <option value="{{eachpltcode}}">{{eachpltcode}}</option>
+                        {% endfor %}
+                    </select>
+                    <input class="submit-button" type="submit" id=submit-btn-df">
+                </form>
+                <div id="innerPanelLnPlt">
+                    <!- #line plots go here ->
+                </div>
 			</div>
 
 		</div>
 
-</div>
-		
-<div class="panel panel-default">
+
+<div class="panel panel-default" id="heatmapPanel">
 	<div class="panel-heading" id="panelHeadHm"><h3>Select a wavelength to plot a heatmap</h3></div>
 
 		<div class="panel-body" id="heatmap">
@@ -53,5 +55,47 @@
                 </div>
             </div>
 		</div>
+
+        
+        <div class="panel panel-default" id="correlationPanel">
+            <div class="panel-heading" id=panelHeadCorr"><h3>Determine Correlation</h3></div>
+
+            <div class="panel-body" id="corrl">
+           
+                <table id="corr-menu-tbl">
+                <tr>
+                        <form id="form-corr">
+                        <td><label for="correl_selector">Platecode pair: </label></td>
+                        <td>
+                            <select id="correl_selector">
+                            <option value="{{unqPltCodes[0]}}" selected> {{unqPltCodes[0]}}</option>
+                            {% for eachpltcode in unqPltCodes[1:] %}
+                            <option value="{{eachpltcode}}">{{eachpltcode}}</option>
+                            {% endfor %}
+                            </select>
+                        </td>
+                        <td><input class="submit-button" type="submit" id=submit-btn-corr"></td>
+                        </form>
+            
+                </tr>
+
+                <tr>
+                        <form id="form2-wavelength">
+						<td><label for="wavelength_selector2">Wavelength:</label></td>	
+                        <td>
+                            <select id="wavelength_selector2">
+                            <option value="{{wvls[0]}}" selected> {{wvls[0]}}</option>
+                            {% for wvl in wvls[1:] %}
+                            <option value="{{wvl}}">{{wvl}}</option>
+                            {% endfor %}
+                            </select>
+                        </td>
+                        </form>
+                </tr>
+                </table>
+
+                <div id="corr_result"></div>
+            </div>
+        </div>
 	</body>
 </html>
