@@ -37,6 +37,34 @@ def build_graph(dfm,wavelength,cnt):
     FigureCanvasSVG(fig).print_svg(img)
     return img.getvalue()
 
+def getWavelengthData(db,pltcodeWithSuffix,wavelength):
+    ''' Return dicitonary of wellids and their absorbance values '''
+    res=db[pltcodeWithSuffix].find({"Wavelength":wavelength})
+    return {k:v for k,v in res[0].items() if k not in ['_id','Wavelength','Temperature(¡C)']}
+
+def getAllWellVals(db,pltcodeWithSuffix,wellID):
+    lstOfVals = []
+    for i in db[pltcodeWithSuffix].find({}, {wellID:1,'_id':0}):
+        lstOfVals.append(i[wellID])
+    return lstOfVals
+
+def build_graph_mongo(db,lstOfwavelengths,pltcodeWithSuffix,wellID):
+    img = io.BytesIO()
+    fig = Figure(figsize=(0.6,0.6))
+    axis = fig.add_subplot(1,1,1)
+    absvals = getAllWellVals(db,pltcodeWithSuffix,wellID)
+    axis.plot(lstOfwavelengths,absvals)
+    axis.set_title(f'{wellID}',fontsize=9)
+    axis.title.set_position([.5, .6])
+    axis.tick_params(
+            which='both',
+            bottom=False,
+            left=False,
+            labelbottom=False,
+            labelleft=False)
+    FigureCanvasSVG(fig).print_svg(img)
+    return img.getvalue()
+
 def build_heatmap(dfm,row,wavelength,pltcode):
     dfm = dfm.iloc[row,:]
     max_df = dfm.max().max()
@@ -56,7 +84,7 @@ def build_heatmap(dfm,row,wavelength,pltcode):
     xs = list(map(lambda x: [x]*16,list(range(24))))
     xs = [str(item+1) for sublist in xs for item in sublist] #flatten list
     strings = [i for i in string.ascii_uppercase[0:16]]*colCnt
-    df = pd.DataFrame({'xs':xs,'ys':strings,'value':dfm_array.flatten('C'),'colour':colours})
+    df = {'xs':xs,'ys':strings,'value':dfm_array.flatten('C'),'colour':colours}
     p = figure(plot_width=1600,plot_height=1170,x_axis_location="above", tools="hover",
                # title=f'Heatmap of {pltcode} 384-plate at {int(wavelength)}nm', 
                sizing_mode='scale_width',

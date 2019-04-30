@@ -1,14 +1,13 @@
 from flask import Flask, render_template, Markup, request, jsonify, session
-# from flask_pymongo import PyMongo
-from graph import build_graph, build_heatmap, pd, stripDF, corrAbs
+from flask_pymongo import PyMongo
+from graph import build_graph, build_heatmap, pd, stripDF, corrAbs, build_graph_mongo
 from bokeh.embed import components
 import os
-
 app = Flask(__name__)
 app.secret_key = os.urandom(10)
-# app.config['MONGO_DBNAME'] = 'NCIFredFlaskApp'
-# app.config['MONGO_URI'] = 'mongodb+srv://sktrinh12:bon78952@ncifredflaskapps-nr4nv.mongodb.net/test?retryWrites=true'
-# mongo = PyMongo(app)
+app.config['MONGO_DBNAME'] = 'ncifred'
+app.config['MONGO_URI'] = "mongodb+srv://sktrinh12:Bon78952%40@ncifrederick-l7ves.mongodb.net/test?retryWrites=true"
+mongo = PyMongo(app)
 
 textfile_filepath = app.root_path+'/textfiles/'
 wavelength = list(range(220,810,10))
@@ -18,6 +17,11 @@ for file in os.listdir(textfile_filepath):
         pltcodes.append(file.replace('.txt',''))
 unqPltCodes = list(set([plt[:len(plt)-3] for plt in pltcodes]))
 
+wellIds=[]
+for i in range(1,25):
+    for j in range(1,25):
+        wellIds.append(f'{chr(64+i)}{j}')
+
 @app.route('/')
 def plotgraphs():
      return render_template('graphs.html', wvls=wavelength,pltcodes=pltcodes,unqPltCodes=unqPltCodes)
@@ -25,11 +29,11 @@ def plotgraphs():
 @app.route('/updateDf/')
 def updateDf():
      selected_pltcode = request.args.get('selected_pltcode')
-     dfm = pd.read_csv(app.root_path + "/textfiles/" + selected_pltcode.strip() + ".txt",encoding='utf-16',sep='\t',skiprows=2,skipfooter=2,engine='python')
-     dfm = stripDF(dfm)
+     # dfm = pd.read_csv(app.root_path + "/textfiles/" + selected_pltcode.strip() + ".txt",encoding='utf-16',sep='\t',skiprows=2,skipfooter=2,engine='python')
+     # dfm = stripDF(dfm)
      lstofplots = []
-     for i in range(384):
-         lstofplots.append(Markup(build_graph(dfm,wavelength,i).decode('utf-8')))
+     for wid in wellIds:
+         lstofplots.append(Markup(build_graph_mongo(mongo.db,wavelength,selected_pltcode,wid).decode('utf-8')))
      return jsonify(htmlLinePlt=render_template('updateDF.html',lstofplots=lstofplots),pltcode=selected_pltcode)
 
 @app.route('/updateHeatmap/')
