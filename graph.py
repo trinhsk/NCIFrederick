@@ -3,39 +3,15 @@ from matplotlib.backends.backend_svg import FigureCanvasSVG
 from matplotlib.figure import Figure
 import string
 from bokeh.plotting import figure
-from bokeh.models import HoverTool, ColumnDataSource, FuncTickFormatter
+from bokeh.models import HoverTool
 import io
 import numpy as np
-import pandas as pd
-import string
+
 
 wellIds=[]
-for i in range(1,25):
+for i in range(1,17):
     for j in range(1,25):
         wellIds.append(f'{chr(64+i)}{j}')
-
-def stripDF(dfm):
-    dfm_strip = dfm.drop(dfm.columns[0], axis=1) #remove wavelength
-    dfm_strip = dfm_strip.drop(dfm.columns[1], axis=1) #remove temperature
-    dfm_strip = dfm_strip.drop(dfm.columns[len(dfm.columns)-1],axis=1) #remove last NaN column
-    return dfm_strip
-
-def build_graph(dfm,wavelength,cnt):
-    img = io.BytesIO()
-    fig = Figure(figsize=(0.6,0.6))
-    axis = fig.add_subplot(1,1,1)
-    absvals = dfm[f'{wellIds[cnt]}']
-    axis.plot(wavelength,absvals)
-    axis.set_title(f'{dfm.columns[cnt]}',fontsize=9)
-    axis.title.set_position([.5, .6])
-    axis.tick_params(
-            which='both',
-            bottom=False,
-            left=False,
-            labelbottom=False,
-            labelleft=False)
-    FigureCanvasSVG(fig).print_svg(img)
-    return img.getvalue()
 
 def getWavelengthData(db,pltcodeWithSuffix,wavelength):
     ''' Return dicitonary of wellids and their absorbance values '''
@@ -50,12 +26,12 @@ def getAllWellVals(db,pltcodeWithSuffix,wellID):
 
 def build_graph_mongo(db,lstOfwavelengths,pltcodeWithSuffix,wellID):
     img = io.BytesIO()
-    fig = Figure(figsize=(0.6,0.6))
+    fig = Figure(figsize=(0.72,0.72))
     axis = fig.add_subplot(1,1,1)
     absvals = getAllWellVals(db,pltcodeWithSuffix,wellID)
     axis.plot(lstOfwavelengths,absvals)
     axis.set_title(f'{wellID}',fontsize=9)
-    axis.title.set_position([.5, .6])
+    axis.title.set_position([.5, .64])
     axis.tick_params(
             which='both',
             bottom=False,
@@ -65,48 +41,48 @@ def build_graph_mongo(db,lstOfwavelengths,pltcodeWithSuffix,wellID):
     FigureCanvasSVG(fig).print_svg(img)
     return img.getvalue()
 
-def build_heatmap(dfm,row,wavelength,pltcode):
-    dfm = dfm.iloc[row,:]
-    max_df = dfm.max().max()
-    min_df = abs(dfm).min().min()
-    colCnt = int(len(dfm)/16)
-    dfm_array = np.array(dfm).reshape(16,colCnt).T
+def build_heatmap_mongo(db,wavelength,pltcodeWithSuffix):
+    datadict = getWavelengthData(db,pltcodeWithSuffix,int(wavelength))
+    vals=[]
+    for i in db[pltcodeWithSuffix].find({}):
+        for k,v in i.items():
+            if k not in ['_id','Wavelength','Temperature(¡C)']:
+                vals.append(v) 
+    max_val = np.array(vals).max()
+    min_val = abs(np.array(vals)).min()
+    data_array = np.array(list(datadict.values())).reshape(16,24).T
     colourBlue = [ '#E3E6E8', '#E0E7EB', '#DEE8ED', '#DBE9F0', '#D9EAF2', '#D6EBF5', '#D4EBF7', '#D1ECFA', '#CFEDFC', '#CCEEFF', '#A8D8F0', '#A3DAF5', '#9EDBFA', '#99DDFF', '#7DC4E8', '#75C7F0', '#6EC9F7', '#66CCFF' ]
-    nphist = np.linspace(min_df,max_df,num=len(colourBlue))
+    nphist = np.linspace(min_val,max_val,num=len(colourBlue))
     lamDiff = lambda x: [abs(x-i) for i in nphist].index(min([abs(x-i) for i in nphist]))
     colours=[]
-    for i in range(dfm_array.shape[0]):
-        for j in range(dfm_array.shape[1]):
-            if dfm_array[i,j] < 0:
+    for i in range(data_array.shape[0]):
+        for j in range(data_array.shape[1]):
+            if data_array[i,j] < 0:
                 colours.append('#5C6970')
             else:
-                colours.append(colourBlue[lamDiff(dfm_array[i,j])])
+                colours.append(colourBlue[lamDiff(data_array[i,j])])
     xs = list(map(lambda x: [x]*16,list(range(24))))
     xs = [str(item+1) for sublist in xs for item in sublist] #flatten list
-    strings = [i for i in string.ascii_uppercase[0:16]]*colCnt
-    df = {'xs':xs,'ys':strings,'value':dfm_array.flatten('C'),'colour':colours}
-    p = figure(plot_width=1600,plot_height=1170,x_axis_location="above", tools="hover",
-               # title=f'Heatmap of {pltcode} 384-plate at {int(wavelength)}nm', 
+    strings = [i for i in string.ascii_uppercase[0:16]]*24
+    df = {'xs':xs,'ys':strings,'value':data_array.flatten(),'colour':colours}
+    p = figure(plot_width=1600,plot_height=1200,x_axis_location="above", tools="hover",
                sizing_mode='scale_width',
-               x_range=df['xs'].drop_duplicates(),#[str(i) for i in range(24)],
-               y_range=list(reversed(df['ys'].drop_duplicates())),#list(reversed([i for i in string.ascii_uppercase[:16]])),
+               x_range=[str(i) for i in range(1,25)],
+               y_range=list(reversed([i for i in string.ascii_uppercase[:16]])),
                tooltips = [('wellID', '@ys,@xs'), ('abs', '@value')])
-    p.rect('xs', 'ys', .64,.64 ,source=ColumnDataSource(df), fill_color='colour',line_color='black')
+    p.rect('xs', 'ys', .64,.64 ,source=df, fill_color='colour',line_color='black')
     p.toolbar.logo = None
     p.toolbar_location = None
     p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
-    label_dict = {}
-    for i, s in enumerate(df['xs'].drop_duplicates()):
-        label_dict[i] = str(int(s) + 1)
     return p
 
 
-def corrAbs(dfm1,dfm2,row):
-    dfmcrude = dfm1.iloc[row,:]
-    dfmfx = dfm2.iloc[row,:]
-    darray_crude = np.array(dfmcrude).reshape(16,24)
-    darray_fx = np.array(dfmfx).reshape(16,24)
+def corrAbs(db,pltcodeWithSuffix1,pltcodeWithSuffix2,wavelength):
+    crude = list(getWavelengthData(db,pltcodeWithSuffix1,wavelength).values())
+    fx = list(getWavelengthData(db,pltcodeWithSuffix2,wavelength).values())
+    darray_crude = np.array(crude).reshape(16,24)
+    darray_fx = np.array(fx).reshape(16,24)
     darray_t = np.flip(np.flip(darray_crude.T,axis=1),axis=0).reshape(16,24) #flip the 100 plate
     ar_crude = np.delete(np.delete(np.delete(darray_crude, np.s_[1::2], 1),[0],1),np.s_[1::2],0) #filter elements so that only obtain the first value of each quadrant
     ar_crude_t = np.delete(np.delete(np.delete(darray_t, np.s_[1::2], 1),[0],1),np.s_[1::2],0) #filter elements as above but for tranposed plate
