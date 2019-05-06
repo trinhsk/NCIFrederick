@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_svg import FigureCanvasSVG
 from matplotlib.figure import Figure
 import string
@@ -6,12 +5,26 @@ from bokeh.plotting import figure
 from bokeh.models import HoverTool
 import io
 import numpy as np
+from pymongo import MongoClient
+import multiprocessing
 
+dbname = 'ncifred'
+connect_string = "mongodb+srv://trinhsk:Bon78952%40@ncifrederick-l7ves.mongodb.net/ncifred?retryWrites=true"
+
+lstOfwavelengths = list(range(220,810,10))
+manager = multiprocessing.Manager()
+lstOfPlots = manager.list()
 
 wellIds=[]
 for i in range(1,17):
     for j in range(1,25):
         wellIds.append(f'{chr(64+i)}{j}')
+
+def chunks(l, n):
+    '''takes a list and integer n as input and returns
+    generator objects of n lengths from that list'''
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 def getWavelengthData(db,pltcodeWithSuffix,wavelength):
     ''' Return dicitonary of wellids and their absorbance values '''
@@ -24,22 +37,29 @@ def getAllWellVals(db,pltcodeWithSuffix,wellID):
         lstOfVals.append(i[wellID])
     return lstOfVals
 
-def build_graph_mongo(db,lstOfwavelengths,pltcodeWithSuffix,wellID):
-    img = io.BytesIO()
-    fig = Figure(figsize=(0.72,0.72))
-    axis = fig.add_subplot(1,1,1)
-    absvals = getAllWellVals(db,pltcodeWithSuffix,wellID)
-    axis.plot(lstOfwavelengths,absvals)
-    axis.set_title(f'{wellID}',fontsize=9)
-    axis.title.set_position([.5, .64])
-    axis.tick_params(
-            which='both',
-            bottom=False,
-            left=False,
-            labelbottom=False,
-            labelleft=False)
-    FigureCanvasSVG(fig).print_svg(img)
-    return img.getvalue()
+def build_graph_mongo_multiproc(chunk,pltcodeWithSuffix):
+    global lstOfPlots
+    client=MongoClient(connect_string,maxPoolSize=10000)
+    db = client[dbname]
+    #loop over the id's in the chunk and do the plotting with each
+    for wid in chunk:
+        #do the plotting with document collection.find_one(id)
+        img = io.BytesIO()
+        fig = Figure(figsize=(0.6,0.6))
+        axis = fig.add_subplot(1,1,1)
+        absVals = getAllWellVals(db,pltcodeWithSuffix,wid)
+        axis.plot(lstOfwavelengths,absVals)
+        axis.set_title(f'{wid}',fontsize=9)
+        axis.title.set_position([.5, .6])
+        axis.tick_params(
+                which='both',
+                bottom=False,
+                left=False,
+                labelbottom=False,
+                labelleft=False)
+        FigureCanvasSVG(fig).print_svg(img)
+        result = img.getvalue()
+        lstOfPlots.append(result)
 
 def build_heatmap_mongo(db,wavelength,pltcodeWithSuffix):
     datadict = getWavelengthData(db,pltcodeWithSuffix,int(wavelength))
