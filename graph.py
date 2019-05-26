@@ -9,7 +9,7 @@ from pymongo import MongoClient
 import multiprocessing
 
 dbname = 'ncifred'
-connect_string = "mongodb+srv://trinhsk:Bon78952%40@ncifrederick-l7ves.mongodb.net/ncifred?retryWrites=true"
+
 
 lstOfwavelengths = list(range(220,810,10))
 manager = multiprocessing.Manager()
