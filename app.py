@@ -30,7 +30,13 @@ def updateDf():
      pool.map(func_partial,list(chunks(wellIds,100)) )
      pool.close()
      pool.join()
-     plts = [Markup(plt.decode('utf-8')) for plt in lstOfPlots]#.replace('width="51.84pt"','width="100%"').replace('height="51.84pt"','height="100%"')))
+     #import pdb
+     #pdb.set_trace()
+     #extracted_vals = [val for val in lstOfPlots]
+     #sorted_plts = extracted_vals.sort(key=lambda tup: tup[0])
+     #sorted_vals = sorted(extracted_vals,key=lambda tup: tup[0])
+     sorted_vals = sorted(lstOfPlots,key=lambda tup: tup[0])
+     plts = [Markup(plt[1].decode('utf-8')) for plt in sorted_vals]#.replace('width="51.84pt"','width="100%"').replace('height="51.84pt"','height="100%"')))
      #print(time.time() - time2s)
      return jsonify(htmlLinePlt=render_template('updateDF.html',lstofplots=plts),pltcode=selected_pltcode)
 

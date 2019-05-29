@@ -9,16 +9,18 @@ from pymongo import MongoClient
 import multiprocessing
 
 dbname = 'ncifred'
-
+connect_string = "mongodb+srv://trinhsk:Bon78952%40@ncifrederick-l7ves.mongodb.net/ncifred?retryWrites=true"
 
 lstOfwavelengths = list(range(220,810,10))
 manager = multiprocessing.Manager()
 lstOfPlots = manager.list()
 
 wellIds=[]
+cnt=0
 for i in range(1,17):
     for j in range(1,25):
-        wellIds.append(f'{chr(64+i)}{j}')
+        wellIds.append((cnt,f'{chr(64+i)}{j}'))
+        cnt+=1
 
 def chunks(l, n):
     '''takes a list and integer n as input and returns
@@ -33,8 +35,8 @@ def getWavelengthData(db,pltcodeWithSuffix,wavelength):
 
 def getAllWellVals(db,pltcodeWithSuffix,wellID):
     lstOfVals = []
-    for i in db[pltcodeWithSuffix].find({}, {wellID:1,'_id':0}):
-        lstOfVals.append(i[wellID])
+    for absnum in db[pltcodeWithSuffix].find({}, {wellID: 1 , '_id': 0}):
+        lstOfVals.append(absnum[wellID ])
     return lstOfVals
 
 def build_graph_mongo_multiproc(chunk,pltcodeWithSuffix):
@@ -42,7 +44,7 @@ def build_graph_mongo_multiproc(chunk,pltcodeWithSuffix):
     client=MongoClient(connect_string,maxPoolSize=10000)
     db = client[dbname]
     #loop over the id's in the chunk and do the plotting with each
-    for wid in chunk:
+    for i, wid in chunk:
         #do the plotting with document collection.find_one(id)
         img = io.BytesIO()
         fig = Figure(figsize=(0.6,0.6))
@@ -59,7 +61,7 @@ def build_graph_mongo_multiproc(chunk,pltcodeWithSuffix):
                 labelleft=False)
         FigureCanvasSVG(fig).print_svg(img)
         result = img.getvalue()
-        lstOfPlots.append(result)
+        lstOfPlots.append((i,result))
 
 def build_heatmap_mongo(db,wavelength,pltcodeWithSuffix):
     datadict = getWavelengthData(db,pltcodeWithSuffix,int(wavelength))
