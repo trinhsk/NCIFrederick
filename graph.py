@@ -7,9 +7,10 @@ import io
 import numpy as np
 from pymongo import MongoClient
 import multiprocessing
+import os
 
 dbname = 'ncifred'
-connect_string = "mongodb+srv://trinhsk:Bon78952%40@ncifrederick-l7ves.mongodb.net/ncifred?retryWrites=true"
+connect_string = os.environ.get('MONGODB_KEY') 
 
 lstOfwavelengths = list(range(220,810,10))
 manager = multiprocessing.Manager()

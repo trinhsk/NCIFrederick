@@ -1,12 +1,12 @@
 from flask import Flask, render_template, Markup, request, jsonify, session
-from graph import corrAbs, build_graph_mongo_multiproc, build_heatmap_mongo, wellIds, dbname, connect_string, lstOfwavelengths, MongoClient, chunks, lstOfPlots
+from graph import corrAbs, build_graph_mongo_multiproc, build_heatmap_mongo, wellIds, dbname, connect_string, lstOfwavelengths, MongoClient, chunks, lstOfPlots, os
 from bokeh.embed import components
-import os
 from functools import partial
 import multiprocessing
 
 app = Flask(__name__)
-app.secret_key = os.urandom(10)
+#app.secret_key = os.urandom(10)
+#app.config['MONGODB_KEY'] = os.environ.get('MONGODB_KEY')
 client = MongoClient(connect_string)
 db = client[dbname]
 
