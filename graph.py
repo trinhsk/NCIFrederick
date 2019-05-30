@@ -62,7 +62,10 @@ def build_graph_mongo_multiproc(chunk,pltcodeWithSuffix):
                 labelleft=False)
         FigureCanvasSVG(fig).print_svg(img)
         result = img.getvalue()
-        lstOfPlots.append((i,result))
+        try:
+            lstOfPlots[i] = (i,result)
+        except IndexError:
+            lstOfPlots.append((i,result))
 
 def build_heatmap_mongo(db,wavelength,pltcodeWithSuffix):
     datadict = getWavelengthData(db,pltcodeWithSuffix,int(wavelength))

@@ -26,7 +26,7 @@ def updateDf():
      global lstOfPlots
      selected_pltcode = request.args.get('selected_pltcode').strip()
      func_partial = partial(build_graph_mongo_multiproc,pltcodeWithSuffix=selected_pltcode)
-     pool = multiprocessing.Pool(processes=8)
+     pool = multiprocessing.Pool(processes=4)
      pool.map(func_partial,list(chunks(wellIds,100)) )
      pool.close()
      pool.join()
